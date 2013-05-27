@@ -5,9 +5,12 @@ import org.jruby.javasupport.JavaEmbedUtils
 import org.jruby.{Ruby, RubyHash, RubyInstanceConfig}
 import java.io.{ByteArrayInputStream, InputStream, File}
 import collection.JavaConverters._
+import java.util.{List => JList}
 import spray.http._
 import spray.http.HttpHeaders._
 import spray.http.ContentType._
+import akka.util.ByteString
+import java.nio.ByteBuffer
 
 
 class RackApp(config: String) {
@@ -41,8 +44,17 @@ class RackApp(config: String) {
   def call(request: HttpRequest): RackResponse = {
     val obj = adapter.callMethod(app, "call", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, RackRequest(request)))).convertToArray()
     val status = obj.get(0).asInstanceOf[Long].toInt
-    val headers = obj.get(1).asInstanceOf[Array[AnyRef]].map(_.asInstanceOf[HttpHeader]).toList
-    val body = obj.get(2).asInstanceOf[Array[AnyRef]].map(_.asInstanceOf[String]).apply(0)
+    val headers = Option(obj.get(1)).map{_.asInstanceOf[JList[HttpHeader]].asScala.toList}.getOrElse(List.empty)
+    val body = Option(obj.get(2)).map{
+      bs =>
+      val buf = bs.asInstanceOf[JList[Array[Byte]]].asScala.foldLeft(ByteString.newBuilder){
+        case (builder, bytes) => builder.putBytes(bytes)
+      }.result().asByteBuffer
+      val arr = new Array[Byte](buf.remaining)
+      buf.get(arr)
+      arr
+    }
+
     RackResponse(status,headers,body)
   }
 
@@ -79,7 +91,14 @@ object RackRequest {
 
 }
 
-case class RackResponse(status: Int, headers:List[HttpHeader], body: String){
-  def toSpray:HttpResponse=HttpResponse(StatusCodes.getForKey(status).get, HttpEntity(body), headers)
+case class RackResponse(status: Int, headers:List[HttpHeader], body: Option[Array[Byte]]){
+
+  def contentType:ContentType = `text/plain`
+
+  def entity:HttpEntity = body.map(bytes => HttpEntity(contentType,bytes)).getOrElse(EmptyEntity)
+
+  def toSpray:HttpResponse={
+    HttpResponse(StatusCodes.getForKey(status).get, entity, headers)
+  }
 }
 

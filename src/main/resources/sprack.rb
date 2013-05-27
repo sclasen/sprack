@@ -60,7 +60,10 @@ module Sprack
           spray_headers << Java::spray::http::HttpHeaders::RawHeader.apply(name,value)
         end
 
-        [response_status.to_java, spray_headers.to_java, response_body.to_java]
+        body = Java::java::util::Arrays.asList(response_body.map{|p| p.to_java_bytes }.to_java)
+        headers = Java::java.util::Arrays.asList(spray_headers.to_java)
+
+        [response_status.to_java, headers, body]
 
       end
     end
