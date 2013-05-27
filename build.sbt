@@ -1,5 +1,7 @@
 import spray.revolver.RevolverPlugin.Revolver
 
+import AssemblyKeys._
+
 name := "sprack"
 
 scalaVersion := "2.10.1"
@@ -23,4 +25,12 @@ libraryDependencies ++= Seq(
 
 Revolver.settings
 
-sbtassembly.Plugin.assemblySettings
+assemblySettings
+
+jarName in assembly := "sprack.jar"
+
+mainClass in assembly := Some("com.sclasen.sprack.Main")
+
+test in assembly := {}
+
+

@@ -7,6 +7,7 @@ import java.io.{ByteArrayInputStream, InputStream, File}
 import collection.JavaConverters._
 import spray.http._
 import spray.http.HttpHeaders._
+import spray.http.ContentType._
 
 
 class RackApp(config: String) {
@@ -47,9 +48,7 @@ class RackApp(config: String) {
 
 }
 
-case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, inputStream: InputStream) {
-
-}
+case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, inputStream: InputStream)
 
 object RackRequest {
   def apply(req: HttpRequest)(implicit ruby: Ruby): RackRequest = RackRequest(
@@ -80,5 +79,7 @@ object RackRequest {
 
 }
 
-case class RackResponse(status: Int, headers:List[HttpHeader], body: String)
+case class RackResponse(status: Int, headers:List[HttpHeader], body: String){
+  def toSpray:HttpResponse=HttpResponse(StatusCodes.getForKey(status).get, HttpEntity(body), headers)
+}
 
