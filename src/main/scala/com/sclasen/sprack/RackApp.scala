@@ -3,14 +3,19 @@ package com.sclasen.sprack
 import org.jruby.runtime.builtin.IRubyObject
 import org.jruby.javasupport.JavaEmbedUtils
 import org.jruby.{Ruby, RubyHash, RubyInstanceConfig}
-import java.io.{ByteArrayInputStream, InputStream, File}
+import java.io.File
 import collection.JavaConverters._
 import java.util.{List => JList}
 import spray.http._
 import spray.http.HttpHeaders._
 import spray.http.ContentType._
 import akka.util.ByteString
-import java.nio.ByteBuffer
+import spray.http.parser.HttpParser
+import scala.reflect._
+import spray.http.HttpRequest
+import scala.Some
+import spray.http.HttpResponse
+import scala.annotation.tailrec
 
 
 class RackApp(config: String) {
@@ -36,7 +41,6 @@ class RackApp(config: String) {
 
   def loadRackApp = {
     val builder = runtime.evalScriptlet("Sprack::RackServer::Builder.new")
-    adapter.callMethod(builder, "test", Array.empty[IRubyObject])
     adapter.callMethod(builder, "build", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, configFile.getCanonicalPath)))
   }
 
@@ -44,23 +48,25 @@ class RackApp(config: String) {
   def call(request: HttpRequest): RackResponse = {
     val obj = adapter.callMethod(app, "call", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, RackRequest(request)))).convertToArray()
     val status = obj.get(0).asInstanceOf[Long].toInt
-    val headers = Option(obj.get(1)).map{_.asInstanceOf[JList[HttpHeader]].asScala.toList}.getOrElse(List.empty)
-    val body = Option(obj.get(2)).map{
+    val headers = Option(obj.get(1)).map {
+      _.asInstanceOf[JList[HttpHeader]].asScala.toList
+    }.getOrElse(List.empty)
+    val body = Option(obj.get(2)).map {
       bs =>
-      val buf = bs.asInstanceOf[JList[Array[Byte]]].asScala.foldLeft(ByteString.newBuilder){
-        case (builder, bytes) => builder.putBytes(bytes)
-      }.result().asByteBuffer
-      val arr = new Array[Byte](buf.remaining)
-      buf.get(arr)
-      arr
+        val buf = bs.asInstanceOf[JList[Array[Byte]]].asScala.foldLeft(ByteString.newBuilder) {
+          case (builder, bytes) => builder.putBytes(bytes)
+        }.result().asByteBuffer
+        val arr = new Array[Byte](buf.remaining)
+        buf.get(arr)
+        arr
     }
 
-    RackResponse(status,headers,body)
+    RackResponse(status, headers, body)
   }
 
 }
 
-case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, inputStream: InputStream)
+case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
 
 object RackRequest {
   def apply(req: HttpRequest)(implicit ruby: Ruby): RackRequest = RackRequest(
@@ -71,14 +77,14 @@ object RackRequest {
     contentType(req),
     contentLength(req),
     headers(req),
-    inputStream(req)
+    byteStringBody(req)
   )
 
   def contentType(req: HttpRequest): String = req.header[`Content-Type`].map(_.value).orNull
 
   def contentLength(req: HttpRequest): String = req.header[`Content-Length`].map(_.length.toString).orNull
 
-  def inputStream(req: HttpRequest): InputStream = new ByteArrayInputStream(req.entity.buffer)
+  def byteStringBody(req: HttpRequest): ByteString = ByteString(req.entity.buffer)
 
   def headers(req: HttpRequest)(implicit ruby: Ruby): RubyHash = req.headers.foldLeft(new RubyHash(ruby)) {
     case (hash, `Content-Length`(_)) => hash
@@ -91,14 +97,25 @@ object RackRequest {
 
 }
 
-case class RackResponse(status: Int, headers:List[HttpHeader], body: Option[Array[Byte]]){
+case class RackResponse(status: Int, incomingHeaders: List[HttpHeader], body: Option[Array[Byte]]) {
 
-  def contentType:ContentType = `text/plain`
+  val parsedHeaders = HttpParser.parseHeaders(incomingHeaders)._2
 
-  def entity:HttpEntity = body.map(bytes => HttpEntity(contentType,bytes)).getOrElse(EmptyEntity)
+  def contentType: ContentType = header[`Content-Type`].map(_.contentType).getOrElse(`text/plain`)
 
-  def toSpray:HttpResponse={
-    HttpResponse(StatusCodes.getForKey(status).get, entity, headers)
+  def entity: HttpEntity = body.map(bytes => HttpEntity(contentType, bytes)).getOrElse(EmptyEntity)
+
+  def toSpray: HttpResponse = {
+    HttpResponse(StatusCodes.getForKey(status).get, entity, parsedHeaders)
+  }
+
+  def header[T <: HttpHeader : ClassTag]: Option[T] = {
+    val erasure = classTag[T].runtimeClass
+    @tailrec def next(headers: List[HttpHeader]): Option[T] =
+      if (headers.isEmpty) None
+      else if (erasure.isInstance(headers.head)) Some(headers.head.asInstanceOf[T]) else next(headers.tail)
+    next(parsedHeaders)
   }
 }
+
 

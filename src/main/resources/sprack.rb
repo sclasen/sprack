@@ -2,6 +2,7 @@ require 'java'
 require 'bundler/setup'
 require 'rack'
 require 'rack/rewindable_input'
+require 'stringio'
 
 module Sprack
   module RackServer
@@ -9,10 +10,6 @@ module Sprack
       def build(filename)
         rack_app, options_ignored = Rack::Builder.parse_file filename
         return SprayAdapter.new(rack_app)
-      end
-
-      def test
-        puts "hi?"
       end
     end
 
@@ -23,18 +20,13 @@ module Sprack
         @logger = java::lang::System::out.to_io #
       end
 
-      def test
-        puts "ohai app here"
-        p  @app.call({})
-      end
-
       def call(request)
 
         rack_env = {
             'rack.version' => Rack::VERSION,
             'rack.multithread' => true,
             'rack.multiprocess' => false,
-            'rack.input' => Rack::RewindableInput.new(request.input_stream.to_io),
+            'rack.input' => StringIO.new(request.input.utf8String),   #StringIO is a Rack Compliant IO I think
             'rack.errors' => @errors,
             'rack.logger' => @logger,
             'rack.url_scheme' => request.scheme,
