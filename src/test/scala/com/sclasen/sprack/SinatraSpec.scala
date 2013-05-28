@@ -7,17 +7,16 @@ import spray.http.HttpMethods._
 import spray.http.ContentType.`application/json`
 
 
-class SprackAppSpec extends WordSpec with MustMatchers {
+class SinatraSpec extends WordSpec with MustMatchers {
 
 
-
-  "A sprack app" must {
-
-    "load" in {
+  "Sinatra" must {
+    "run sinatra" in {
       try {
-        val app = new RackApp("src/test/resources/config.ru")
-        val resp = app.call(HttpRequest(GET, Uri("/test")))
+        val app = new RackApp("src/test/resources/sinatra.ru")
+        val resp = app.call(HttpRequest(POST, Uri("/"), entity = HttpEntity("foo")))
         resp.status must equal(200)
+        resp.body.map(b => new String(b)).get must equal("Hello posted foo")
       } catch {
         case e: Exception =>
           e.printStackTrace()

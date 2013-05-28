@@ -64,6 +64,11 @@ class RackApp(config: String) {
     RackResponse(status, headers, body)
   }
 
+  /*warning this will system exit, dont call in tests*/
+  def stop{
+    runtime.tearDown(false)
+  }
+
 }
 
 case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
