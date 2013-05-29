@@ -7,23 +7,22 @@ import spray.http.HttpMethods._
 import spray.http.ContentType.`application/json`
 
 
-class SinatraSpec extends WordSpec with MustMatchers {
+class ChunkedSpec extends WordSpec with MustMatchers {
 
 
-  "Sinatra" must {
-    "run sinatra" in {
+  "Chunked" must {
+    "do chunks" in {
       try {
-        val app = new RackApp("src/test/resources/sinatra.ru")
-        val resp = app.call(HttpRequest(POST, Uri("/"), entity = HttpEntity("foo"))).right.get
+        val app = new RackApp("src/test/resources/chunked.ru")
+        val (resp, chunks) = app.call(HttpRequest(GET, Uri("/"))).left.get
         resp.status.value must equal(200)
-        resp.entity.asString must equal("Hello posted foo")
+        chunks.size must equal("Hello".size)
       } catch {
         case e: Exception =>
           e.printStackTrace()
           fail(e)
       }
     }
-
   }
 
 }
