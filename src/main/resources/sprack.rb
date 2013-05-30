@@ -33,9 +33,13 @@ module Sprack
             'REQUEST_METHOD' => request.method,
             'SCRIPT_NAME' => '',
             'PATH_INFO' => request.path,
+            'REQUEST_PATH' => request.path,
+            'REQUEST_URI' => request.path,
             'QUERY_STRING' => (request.query || ""),
-            'SERVER_NAME' => 'server',
-            'SERVER_PORT' => 'port'
+            'SERVER_NAME' => 'localhost',
+            'SERVER_PORT' => '8080',
+            "SERVER_PROTOCOL"=>"HTTP/1.1",
+            "SERVER_SOFTWARE" => "sprack"
         }
 
         rack_env['CONTENT_TYPE'] = request.content_type unless request.content_type.nil?
