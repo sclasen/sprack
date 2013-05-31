@@ -1,4 +1,4 @@
-# sprack:  spray <=> rack
+# sprack: spray rack handler for jruby apps
 
 
 ## develop
