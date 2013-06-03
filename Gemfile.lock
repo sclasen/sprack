@@ -3,7 +3,6 @@ GEM
   specs:
     daemons (1.1.9)
     eventmachine (1.0.3)
-    eventmachine (1.0.3-java)
     puma (2.0.1)
       rack (>= 1.1, < 2.0)
     puma (2.0.1-java)
