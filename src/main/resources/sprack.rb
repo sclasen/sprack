@@ -7,15 +7,17 @@ require 'stringio'
 module Sprack
   module RackServer
     class Builder
-      def build(filename)
+      def build(filename, host, port)
         rack_app, options_ignored = Rack::Builder.parse_file filename
-        return SprayAdapter.new(rack_app)
+        return SprayAdapter.new(rack_app, host, port)
       end
     end
 
     class SprayAdapter
-      def initialize(app)
+      def initialize(app, host, port)
         @app = app
+        @host = host
+        @port = port.to_s
         @errors = java::lang::System::err.to_io #
         @logger = java::lang::System::out.to_io #
       end
@@ -36,8 +38,8 @@ module Sprack
             'REQUEST_PATH' => request.path,
             'REQUEST_URI' => request.path,
             'QUERY_STRING' => (request.query || ""),
-            'SERVER_NAME' => 'localhost',
-            'SERVER_PORT' => '8080',
+            'SERVER_NAME' => @host,
+            'SERVER_PORT' => @port,
             "SERVER_PROTOCOL"=>"HTTP/1.1",
             "SERVER_SOFTWARE" => "sprack"
         }
@@ -48,6 +50,9 @@ module Sprack
         request.headers.each do |name, value|
           rack_env["HTTP_#{name.upcase.gsub(/-/,'_')}"] = value
         end
+
+        rack_env['HTTP_ACCEPT'] = 'application/vnd.heroku+json; version=3' if rack_env['HTTP_ACCEPT'] == 'application/vnd.heroku+json'
+
 
         response_status, response_headers, response_body = @app.call(rack_env)
 

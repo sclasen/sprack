@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %%  "akka-slf4j" % "2.1.2",
   "ch.qos.logback"% "logback-classic" % "1.0.12" % "runtime",
   "org.jruby" % "jruby-complete" % "1.7.4",
+  "org.rogach" %% "scallop" % "0.9.2",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 

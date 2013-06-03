@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 import RackApp._
 
 
-class RackApp(config: String) {
+class RackApp(config: String, host:String, port:Int) {
 
   val configFile = new File(config)
   implicit val runtime = JavaEmbedUtils.initialize(List(configFile.getParentFile.getCanonicalPath).asJava, runtimeConfig)
@@ -41,7 +41,8 @@ class RackApp(config: String) {
 
   def loadRackApp = {
     val builder = runtime.evalScriptlet("Sprack::RackServer::Builder.new")
-    adapter.callMethod(builder, "build", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, configFile.getCanonicalPath)))
+    adapter.callMethod(builder, "build", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, configFile.getCanonicalPath),
+      JavaEmbedUtils.javaToRuby(runtime, host),  JavaEmbedUtils.javaToRuby(runtime, port)))
   }
 
 
