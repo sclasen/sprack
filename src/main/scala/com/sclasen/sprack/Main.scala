@@ -7,6 +7,7 @@ import spray.can.Http
 import org.rogach.scallop._
 import concurrent.duration._
 import akka.util.Timeout
+import scala.util.{Failure, Success, Try}
 
 object Main extends App  {
 
@@ -18,10 +19,14 @@ object Main extends App  {
   // the handler actor replies to incoming HttpRequests
   val handler = system.actorOf(Props(new SprackService(conf.rackfile(), conf.host(), conf.port())), name = "handler")
 
-  (handler ? Ready).onSuccess{
-    case Ready =>
+  (handler ? Ready).onComplete{
+    case Success(Ready) =>
       println("RackHandler Ready binding")
       IO(Http) ! Http.Bind(handler, interface = "localhost", port = conf.port())
+    case Failure(e) =>
+      println("Failed to init RackHandler, exiting")
+      e.printStackTrace()
+      System.exit(11)
   }
 
 

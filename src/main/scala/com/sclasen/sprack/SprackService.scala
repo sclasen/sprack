@@ -4,9 +4,13 @@ import akka.actor.Actor
 import spray.util.SprayActorLogging
 import akka.util.Timeout
 import spray.can.Http
-import spray.http.{ChunkedMessageEnd, ChunkedResponseStart, HttpRequest}
+import spray.http._
 import concurrent.duration._
 import scala.concurrent.future
+import spray.http.HttpRequest
+import spray.http.ChunkedMessageEnd
+import spray.http.HttpResponse
+import spray.http.ChunkedResponseStart
 
 case object Ready
 
@@ -29,6 +33,8 @@ class SprackService(config: String, host:String, port:Int) extends Actor with Sp
             chunks.foreach(ch => client ! ch)
             client ! ChunkedMessageEnd()
         }
+      }.onFailure{
+        case e:Exception => client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(e.toString + e.getStackTraceString))
       }
     }
     case Ready => sender ! Ready
