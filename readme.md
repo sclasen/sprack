@@ -1,5 +1,8 @@
 # sprack: spray rack handler for jruby apps
 
+* This is for threadsafe apps only!
+* if using activerecord, make sure to set `:allow_concurrency => true, :pool => <many>` 
+
 
 ## develop
 

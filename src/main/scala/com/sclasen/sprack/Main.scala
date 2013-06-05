@@ -17,6 +17,7 @@ object Main extends App  {
   import concurrent.ExecutionContext.Implicits.global
 
   // the handler actor replies to incoming HttpRequests
+  println("creating RackHandler, this can take a while on big apps")
   val handler = system.actorOf(Props(new SprackService(conf.rackfile(), conf.port())), name = "handler")
 
   (handler ? Ready).onComplete{
