@@ -15,7 +15,7 @@ class SprackAppSpec extends WordSpec with MustMatchers {
 
     "load" in {
       try {
-        val app = new RackApp("src/test/resources/config.ru")
+        val app = new RackApp("src/test/resources/config.ru",80)
         val resp = app.call(HttpRequest(GET, Uri("/test"))).right.get
         resp.status.value must equal(200)
       } catch {

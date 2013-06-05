@@ -17,12 +17,12 @@ object Main extends App  {
   import concurrent.ExecutionContext.Implicits.global
 
   // the handler actor replies to incoming HttpRequests
-  val handler = system.actorOf(Props(new SprackService(conf.rackfile(), conf.host(), conf.port())), name = "handler")
+  val handler = system.actorOf(Props(new SprackService(conf.rackfile(), conf.port())), name = "handler")
 
   (handler ? Ready).onComplete{
     case Success(Ready) =>
       println("RackHandler Ready binding")
-      IO(Http) ! Http.Bind(handler, interface = "localhost", port = conf.port())
+      IO(Http) ! Http.Bind(handler, interface = conf.host(), port = conf.port())
     case Failure(e) =>
       println("Failed to init RackHandler, exiting")
       e.printStackTrace()
@@ -33,7 +33,8 @@ object Main extends App  {
 }
 
 class Conf(args:Seq[String]) extends ScallopConf(args){
-  val host = opt[String](default = Some("localhost"))
+  version("0.0.0.1")
+  val host = opt[String](default = Some("0.0.0.0"))
   val port = opt[Int](default = Some(8080))
   val rackfile = opt[String](default = Some("./config.ru"))
   val timeout = opt[Int](default = Some(30)).map(_ seconds)

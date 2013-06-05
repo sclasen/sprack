@@ -13,7 +13,7 @@ class ChunkedSpec extends WordSpec with MustMatchers {
   "Chunked" must {
     "do chunks" in {
       try {
-        val app = new RackApp("src/test/resources/chunked.ru")
+        val app = new RackApp("src/test/resources/chunked.ru",80)
         val (resp, chunks) = app.call(HttpRequest(GET, Uri("/"))).left.get
         resp.status.value must equal(200)
         chunks.size must equal("Hello".size)

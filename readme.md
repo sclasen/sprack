@@ -29,7 +29,15 @@ bundle exec sbt assembly
 
 ```
 
-bundle exec java -jar path/to/sprack.jar path/to/config.ru
+bundle exec java -jar path/to/sprack.jar --help
+
+0.0.0.1
+  -h, --host  <arg>        (default = 0.0.0.0)
+  -p, --port  <arg>        (default = 8080)
+  -r, --rackfile  <arg>    (default = ./config.ru)
+  -t, --timeout  <arg>     (default = 30)
+      --help              Show help message
+      --version           Show version of this program
 
 ```
 

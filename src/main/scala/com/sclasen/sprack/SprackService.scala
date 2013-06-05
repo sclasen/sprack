@@ -14,12 +14,12 @@ import spray.http.ChunkedResponseStart
 
 case object Ready
 
-class SprackService(config: String, host:String, port:Int) extends Actor with SprayActorLogging {
+class SprackService(config: String, port:Int) extends Actor with SprayActorLogging {
   implicit val timeout: Timeout = 1.second // for the actor 'asks'
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val rackApp = new RackApp(config, host, port)
+  val rackApp = new RackApp(config, port)
 
   def receive = {
     case _: Http.Connected => sender ! Http.Register(self)
@@ -34,7 +34,10 @@ class SprackService(config: String, host:String, port:Int) extends Actor with Sp
             client ! ChunkedMessageEnd()
         }
       }.onFailure{
-        case e:Exception => client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(e.toString + e.getStackTraceString))
+        case e:Exception =>
+          println("=======================>")
+          e.printStackTrace()
+          client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(e.toString + e.getStackTraceString))
       }
     }
     case Ready => sender ! Ready

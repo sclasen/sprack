@@ -13,7 +13,7 @@ class IOSpec extends WordSpec with MustMatchers {
   "IO" must {
     "have proper io" in {
       try {
-        val app = new RackApp("src/test/resources/iotest.ru")
+        val app = new RackApp("src/test/resources/iotest.ru",80)
         val resp = app.call(HttpRequest(POST, Uri("/test"), entity = HttpEntity(`application/json`, """{"foo":"bar"}"""))).right.get
         resp.status.value must equal(200)
       } catch {

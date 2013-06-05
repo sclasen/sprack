@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 import RackApp._
 
 
-class RackApp(config: String, host:String, port:Int) {
+class RackApp(config: String, port:Int) {
 
   val configFile = new File(config)
   implicit val runtime = JavaEmbedUtils.initialize(List(configFile.getParentFile.getCanonicalPath).asJava, runtimeConfig)
@@ -42,7 +42,7 @@ class RackApp(config: String, host:String, port:Int) {
   def loadRackApp = {
     val builder = runtime.evalScriptlet("Sprack::RackServer::Builder.new")
     adapter.callMethod(builder, "build", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, configFile.getCanonicalPath),
-      JavaEmbedUtils.javaToRuby(runtime, host),  JavaEmbedUtils.javaToRuby(runtime, port)))
+      JavaEmbedUtils.javaToRuby(runtime, port)))
   }
 
 
@@ -95,12 +95,13 @@ object RackApp{
   }
 }
 
-case class RackRequest(method: String, scheme: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
+case class RackRequest(method: String, scheme: String, host:String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
 
 object RackRequest {
   def apply(req: HttpRequest)(implicit ruby: Ruby): RackRequest = RackRequest(
     req.method.toString,
     req.uri.scheme.toString,
+    req.uri.authority.host.address,
     req.uri.path.toString,
     req.uri.query.toString,
     contentType(req),

@@ -7,16 +7,15 @@ require 'stringio'
 module Sprack
   module RackServer
     class Builder
-      def build(filename, host, port)
+      def build(filename, port)
         rack_app, options_ignored = Rack::Builder.parse_file filename
-        return SprayAdapter.new(rack_app, host, port)
+        return SprayAdapter.new(rack_app, port)
       end
     end
 
     class SprayAdapter
-      def initialize(app, host, port)
+      def initialize(app, port)
         @app = app
-        @host = host
         @port = port.to_s
         @errors = java::lang::System::err.to_io #
         @logger = java::lang::System::out.to_io #

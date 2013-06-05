@@ -13,7 +13,7 @@ class SinatraSpec extends WordSpec with MustMatchers {
   "Sinatra" must {
     "run sinatra" in {
       try {
-        val app = new RackApp("src/test/resources/sinatra.ru")
+        val app = new RackApp("src/test/resources/sinatra.ru",80)
         val resp = app.call(HttpRequest(POST, Uri("/"), entity = HttpEntity("foo"))).right.get
         resp.status.value must equal(200)
         resp.entity.asString must equal("Hello posted foo")
