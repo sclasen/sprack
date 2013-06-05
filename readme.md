@@ -41,4 +41,8 @@ bundle exec java -jar path/to/sprack.jar --help
 
 ```
 
+## initial benchmark
+
+https://gist.github.com/sclasen/26b0b013273bf9d564e9
+
 
