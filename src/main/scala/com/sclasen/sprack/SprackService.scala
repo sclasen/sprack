@@ -11,13 +11,14 @@ import spray.http.HttpRequest
 import spray.http.ChunkedMessageEnd
 import spray.http.HttpResponse
 import spray.http.ChunkedResponseStart
+import akka.dispatch.Dispatchers
 
 case object Ready
 
 class SprackService(config: String, port:Int) extends Actor with SprayActorLogging {
   implicit val timeout: Timeout = 1.second // for the actor 'asks'
 
-  import concurrent.ExecutionContext.Implicits.global
+  implicit val futureDispatcher = context.system.dispatchers.lookup("sprack.rack-dispatcher")
 
   val rackApp = new RackApp(config, port)
 
