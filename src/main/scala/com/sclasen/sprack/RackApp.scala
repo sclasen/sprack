@@ -8,7 +8,7 @@ import collection.JavaConverters._
 import java.util.{List => JList}
 import spray.http._
 import spray.http.HttpHeaders._
-import spray.http.ContentType._
+import spray.http.ContentTypes._
 import akka.util.ByteString
 import spray.http.parser.HttpParser
 import scala.reflect._

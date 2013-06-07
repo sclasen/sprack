@@ -12,7 +12,7 @@ class ConfSpec extends WordSpec with MustMatchers {
       val sys = ActorSystem()
       val d = sys.dispatchers.lookup("sprack.rack-dispatcher")
       d must not equal (sys.dispatcher)
-      d.prerequisites.settings.config.getInt("sprack.rack-dispatcher.fork-join-executor.parallelism-max") must equal(1)
+      //d.prerequisites.settings.config.getInt("sprack.rack-dispatcher.fork-join-executor.parallelism-max") must equal(1)
     }
 
   }
