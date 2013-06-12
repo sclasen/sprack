@@ -1,5 +1,6 @@
 # sprack: spray rack handler for jruby apps
 
+* run rails, sinatra or any other rack compatible (j)ruby stack
 * This is for threadsafe apps only!
 * if using activerecord, make sure to set `:allow_concurrency => true, :pool => <many>` 
 
@@ -35,6 +36,7 @@ bundle exec sbt assembly
 bundle exec java -jar path/to/sprack.jar --help
 
 0.0.0.1
+  -a, --akkafile  <arg>
   -h, --host  <arg>        (default = 0.0.0.0)
   -p, --port  <arg>        (default = 8080)
   -r, --rackfile  <arg>    (default = ./config.ru)
