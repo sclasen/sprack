@@ -50,9 +50,6 @@ module Sprack
           rack_env["HTTP_#{name.upcase.gsub(/-/,'_')}"] = value
         end
 
-        rack_env['HTTP_ACCEPT'] = 'application/vnd.heroku+json; version=3' if rack_env['HTTP_ACCEPT'] == 'application/vnd.heroku+json'
-
-
         response_status, response_headers, response_body = @app.call(rack_env)
 
         spray_headers = []
