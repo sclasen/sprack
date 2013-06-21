@@ -24,7 +24,6 @@ object Main extends App {
     case Success(Ready) =>
       println("RackHandler Ready binding")
       IO(Http) ! Http.Bind(handler, interface = conf.host(), port = conf.port())
-      IO(Http) ! Http.Bind(handler, interface = conf.host(), port = conf.port() + 1 )
     case Failure(e) =>
       println("Failed to init RackHandler, exiting")
       e.printStackTrace()
