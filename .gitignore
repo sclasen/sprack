@@ -3,3 +3,4 @@
 target
 project/target
 .ruby-version
+*.gem
