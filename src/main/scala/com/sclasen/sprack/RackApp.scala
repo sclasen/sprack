@@ -101,6 +101,10 @@ object RackApp{
       else if (erasure.isInstance(headers.head)) Some(headers.head.asInstanceOf[T]) else next(headers.tail)
     next(h)
   }
+
+  def filterHeaders(hs:List[HttpHeader]):List[HttpHeader] = hs.filter{
+    h => `Content-Type`.lowercaseName != h.lowercaseName && `Content-Length`.lowercaseName != h.lowercaseName
+  }
 }
 
 case class RackRequest(method: String, scheme: String, host:String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
@@ -142,7 +146,7 @@ case class RackResponse(status: Int, parsedHeaders: List[HttpHeader], body: Opti
   def entity: HttpEntity = body.map(bytes => HttpEntity(contentType, bytes)).getOrElse(EmptyEntity)
 
   def toSpray: HttpResponse = {
-    HttpResponse(StatusCodes.getForKey(status).get, entity, parsedHeaders)
+    HttpResponse(StatusCodes.getForKey(status).get, entity, filterHeaders(parsedHeaders))
   }
 
 }
