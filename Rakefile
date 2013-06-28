@@ -4,7 +4,7 @@ namespace :sprack do
   desc "build the gem"
   task :gem do
    puts "OHAI"
-   exec 'sbt package'
+   exec 'sbt clean compile assembly'
    exec 'gem build sprack.gemspec'
   end
 end
