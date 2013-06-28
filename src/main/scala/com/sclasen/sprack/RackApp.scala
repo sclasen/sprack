@@ -2,7 +2,8 @@ package com.sclasen.sprack
 
 import org.jruby.runtime.builtin.IRubyObject
 import org.jruby.javasupport.JavaEmbedUtils
-import org.jruby.{Ruby, RubyHash, RubyInstanceConfig}
+import org.jruby.javasupport.JavaEmbedUtils.javaToRuby
+import org.jruby.{RubyIO, Ruby, RubyHash, RubyInstanceConfig}
 import java.io.File
 import collection.JavaConverters._
 import java.util.{List => JList}
@@ -18,7 +19,7 @@ import scala.annotation.tailrec
 import RackApp._
 
 
-class RackApp(config: String, port:Int) {
+class RackApp(config: String, port:Int, out:ActorLogStream, err:ActorLogStream) {
 
   val configFile = new File(config)
   implicit val runtime = JavaEmbedUtils.initialize(List(configFile.getParentFile.getCanonicalPath).asJava, runtimeConfig)
@@ -41,13 +42,20 @@ class RackApp(config: String, port:Int) {
 
   def loadRackApp = {
     val builder = runtime.evalScriptlet("Sprack::RackServer::Builder.new")
-    adapter.callMethod(builder, "build", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, configFile.getCanonicalPath),
-      JavaEmbedUtils.javaToRuby(runtime, port)))
+    adapter.callMethod(builder, "build",
+      Array[IRubyObject](
+        ruby(configFile.getCanonicalPath),
+        ruby(port),
+        ruby(RubyIO.newIO(runtime,out)),
+        ruby(RubyIO.newIO(runtime,err))
+      ))
   }
+
+  def ruby[T](any:T) = javaToRuby(runtime,any)
 
 
   def call(request: HttpRequest): Either[(HttpResponse, Stream[MessageChunk]), HttpResponse] = {
-    val obj = adapter.callMethod(app, "call", Array[IRubyObject](JavaEmbedUtils.javaToRuby(runtime, RackRequest(request)))).convertToArray()
+    val obj = adapter.callMethod(app, "call", Array[IRubyObject](ruby(RackRequest(request)))).convertToArray()
 
     val status = obj.get(0).asInstanceOf[Long].toInt
 

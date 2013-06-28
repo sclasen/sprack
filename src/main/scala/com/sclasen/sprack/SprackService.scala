@@ -1,6 +1,6 @@
 package com.sclasen.sprack
 
-import akka.actor.Actor
+import akka.actor.{Props, Actor}
 import spray.util.SprayActorLogging
 import akka.util.Timeout
 import spray.can.Http
@@ -12,6 +12,7 @@ import spray.http.ChunkedMessageEnd
 import spray.http.HttpResponse
 import spray.http.ChunkedResponseStart
 import akka.dispatch.Dispatchers
+import java.io.OutputStream
 
 case object Ready
 
@@ -20,7 +21,10 @@ class SprackService(config: String, port:Int) extends Actor with SprayActorLoggi
 
   implicit val futureDispatcher = context.system.dispatchers.lookup("sprack.rack-dispatcher")
 
-  val rackApp = new RackApp(config, port)
+  val rackApp = new RackApp(config, port, actorLogStream(System.out, "logs/out"), actorLogStream(System.err, "logs/err"))
+
+  def actorLogStream(stream:OutputStream, name:String)=
+    ActorLogStream(context.actorOf(Props(classOf[Logger], stream).withDispatcher("sprack.logger-dispatcher"), name))
 
   def receive = {
     case _: Http.Connected => sender ! Http.Register(self)

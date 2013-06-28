@@ -7,13 +7,13 @@ import spray.http.HttpMethods._
 import spray.http.ContentTypes._
 
 
-class IOSpec extends WordSpec with MustMatchers {
+class IOSpec extends WordSpec with MustMatchers with SprackSpec  {
 
 
   "IO" must {
     "have proper io" in {
       try {
-        val app = new RackApp("src/test/resources/iotest.ru", 80)
+        val app = rackApp("src/test/resources/iotest.ru", 80)
         val resp = app.call(HttpRequest(POST, Uri("/test"), entity = HttpEntity(`application/json`, """{"foo":"bar"}"""))).right.get
         resp.status.intValue must equal(200)
       } catch {

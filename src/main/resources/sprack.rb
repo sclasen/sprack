@@ -3,22 +3,28 @@ require 'bundler/setup'
 require 'rack'
 require 'rack/rewindable_input'
 require 'stringio'
+require 'logger'
 
 module Sprack
+
   module RackServer
     class Builder
-      def build(filename, port)
+      def build(filename, port, out, err)
         rack_app, options_ignored = Rack::Builder.parse_file filename
-        return SprayAdapter.new(rack_app, port)
+        return SprayAdapter.new(rack_app, port, out, err)
       end
     end
 
     class SprayAdapter
-      def initialize(app, port)
+      def initialize(app, port, out, err)
         @app = app
         @port = port.to_s
-        @errors = java::lang::System::err.to_io #
-        @logger = java::lang::System::out.to_io #
+        @out = out
+        @err = err
+        @errors = err
+        @logger = ::Logger.new(out)
+        $stdout = @out
+        $stderr = @err
       end
 
       def call(request)
