@@ -21,7 +21,7 @@ class SprackService(config: String, port:Int) extends Actor with SprayActorLoggi
 
   implicit val futureDispatcher = context.system.dispatchers.lookup("sprack.rack-dispatcher")
 
-  val rackApp = new RackApp(config, port, actorLogStream(System.out, "logs/out"), actorLogStream(System.err, "logs/err"))
+  val rackApp = new RackApp(config, port, actorLogStream(System.out, "logs-out"), actorLogStream(System.err, "logs-err"))
 
   def actorLogStream(stream:OutputStream, name:String)=
     ActorLogStream(context.actorOf(Props(classOf[Logger], stream).withDispatcher("sprack.logger-dispatcher"), name))

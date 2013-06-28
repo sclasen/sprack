@@ -1,3 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-java $JAVA_OPTS -jar $(dirname $0)/../target/scala-2.10/sprack.jar "$@"
+dir = File.expand_path("..", __FILE__)
+
+javaopts = ENV['JAVA_OPTS'] || ""
+
+args = " -jar #{dir}/../target/scala-2.10/sprack.jar "
+
+command = "java " << javaopts << args
+
+ARGV.each{|a| command << " #{a} "  }
+
+Kernel.exec(command)
