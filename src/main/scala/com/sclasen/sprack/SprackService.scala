@@ -2,28 +2,26 @@ package com.sclasen.sprack
 
 import akka.actor.{Props, Actor}
 import spray.util.SprayActorLogging
-import akka.util.Timeout
 import spray.can.Http
 import spray.http._
-import concurrent.duration._
 import scala.concurrent.future
 import spray.http.HttpRequest
 import spray.http.ChunkedMessageEnd
 import spray.http.HttpResponse
 import spray.http.ChunkedResponseStart
-import akka.dispatch.Dispatchers
 import java.io.OutputStream
+import java.nio.ByteBuffer
 
 case object Ready
 
-class SprackService(config: String, port:Int) extends Actor with SprayActorLogging {
-  implicit val timeout: Timeout = 1.second // for the actor 'asks'
+class SprackService(config: String, port: Int) extends Actor with SprayActorLogging {
 
   implicit val futureDispatcher = context.system.dispatchers.lookup("sprack.rack-dispatcher")
+  val out = actorLogStream(System.out, "logs-out")
+  val err = actorLogStream(System.err, "logs-err")
+  val rackApp = new RackApp(config, port, out, err)
 
-  val rackApp = new RackApp(config, port, actorLogStream(System.out, "logs-out"), actorLogStream(System.err, "logs-err"))
-
-  def actorLogStream(stream:OutputStream, name:String)=
+  def actorLogStream(stream: OutputStream, name: String) =
     ActorLogStream(context.actorOf(Props(classOf[Logger], stream).withDispatcher("sprack.logger-dispatcher"), name))
 
   def receive = {
@@ -38,15 +36,14 @@ class SprackService(config: String, port:Int) extends Actor with SprayActorLoggi
             chunks.foreach(ch => client ! ch)
             client ! ChunkedMessageEnd()
         }
-      }.onFailure{
-        case e:Exception =>
-          println("=======================>")
-          e.printStackTrace()
-          client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(e.toString + e.getStackTraceString))
+      }.onFailure {
+        case e: Exception =>
+          val msg = e.toString + e.getStackTraceString
+          err.write(ByteBuffer.wrap(msg.getBytes))
+          client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(msg))
       }
     }
     case Ready => sender ! Ready
-    case huh:AnyRef => println(huh)
   }
 
 
