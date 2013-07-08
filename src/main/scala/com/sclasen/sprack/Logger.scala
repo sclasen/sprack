@@ -25,6 +25,10 @@ class ActorLogStream(logger: ActorRef) extends WritableByteChannel {
     arr.length
   }
 
+  def send(a:AnyRef):Unit = {
+    logger ! a.toString.getBytes
+  }
+
   def isOpen: Boolean = true
 
   def close() {}

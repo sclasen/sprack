@@ -6,7 +6,7 @@ import org.jruby.javasupport.JavaEmbedUtils.javaToRuby
 import org.jruby.{RubyIO, Ruby, RubyHash, RubyInstanceConfig}
 import java.io.File
 import collection.JavaConverters._
-import java.util.{List => JList}
+import java.util.{List => JList, HashMap => JHMap}
 import spray.http._
 import spray.http.HttpHeaders._
 import spray.http.ContentTypes._
@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 import RackApp._
 
 
-class RackApp(config: String, port:Int, out:ActorLogStream, err:ActorLogStream) {
+class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStream) {
 
   val configFile = new File(config)
   implicit val runtime = JavaEmbedUtils.initialize(List(configFile.getParentFile.getCanonicalPath).asJava, runtimeConfig)
@@ -46,12 +46,12 @@ class RackApp(config: String, port:Int, out:ActorLogStream, err:ActorLogStream) 
       Array[IRubyObject](
         ruby(configFile.getCanonicalPath),
         ruby(port),
-        ruby(RubyIO.newIO(runtime,out)),
-        ruby(RubyIO.newIO(runtime,err))
+        ruby(RubyIO.newIO(runtime, out)),
+        ruby(RubyIO.newIO(runtime, err))
       ))
   }
 
-  def ruby[T](any:T) = javaToRuby(runtime,any)
+  def ruby[T](any: T) = javaToRuby(runtime, any)
 
 
   def call(request: HttpRequest): Either[(HttpResponse, Stream[MessageChunk]), HttpResponse] = {
@@ -65,10 +65,10 @@ class RackApp(config: String, port:Int, out:ActorLogStream, err:ActorLogStream) 
       }.getOrElse(List.empty)
     }
 
-    errors.foreach(println)
+    errors.foreach(err.send)
 
     if (header[`Transfer-Encoding`](headers).filter(_.hasChunked).isDefined) {
-      val resp = RackResponse(status,headers,None)
+      val resp = RackResponse(status, headers, None)
       val chunks = Option(obj.get(2)).map {
         bs =>
           bs.asInstanceOf[JList[Array[Byte]]].asScala.toStream.map(b => MessageChunk(b))
@@ -93,7 +93,7 @@ class RackApp(config: String, port:Int, out:ActorLogStream, err:ActorLogStream) 
 
 }
 
-object RackApp{
+object RackApp {
   def header[T <: HttpHeader : ClassTag](h: List[HttpHeader]): Option[T] = {
     val erasure = classTag[T].runtimeClass
     @tailrec def next(headers: List[HttpHeader]): Option[T] =
@@ -102,14 +102,19 @@ object RackApp{
     next(h)
   }
 
-  def filterHeaders(hs:List[HttpHeader]):List[HttpHeader] = hs.filter{
+  def filterHeaders(hs: List[HttpHeader]): List[HttpHeader] = hs.filter {
     h => `Content-Type`.lowercaseName != h.lowercaseName && `Content-Length`.lowercaseName != h.lowercaseName
   }
 }
 
-case class RackRequest(method: String, scheme: String, host:String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
+case class RackRequest(method: String, scheme: String, host: String, path: String, query: String, contentType: String, contentLength: String, headers: RubyHash, input: ByteString)
 
 object RackRequest {
+
+  //previously we were doing (in ruby) header.name => HTTP_ + header.name.toUpper.gsub("-","_") translation
+  //but that was the top sprack code present in cpu profiling.
+  val rackHeaderNameCache = new JHMap[String, String](1024).asScala
+
   def apply(req: HttpRequest)(implicit ruby: Ruby): RackRequest = RackRequest(
     req.method.toString,
     req.uri.scheme.toString,
@@ -132,10 +137,15 @@ object RackRequest {
     case (hash, `Content-Length`(_)) => hash
     case (hash, `Content-Type`(_)) => hash
     case (hash, header) => {
-      hash.put(header.name, header.value)
+      hash.put(header.rackHeader, header.value)
       hash
     }
   }
+
+  implicit class RackHeader(val header: HttpHeader) extends AnyVal {
+    def rackHeader = RackRequest.rackHeaderNameCache.getOrElseUpdate(header.lowercaseName, "HTTP_" + header.lowercaseName.toUpperCase.replace('-', '_'))
+  }
+
 
 }
 
@@ -150,5 +160,6 @@ case class RackResponse(status: Int, parsedHeaders: List[HttpHeader], body: Opti
   }
 
 }
+
 
 

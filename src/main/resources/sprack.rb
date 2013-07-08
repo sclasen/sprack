@@ -52,9 +52,7 @@ module Sprack
         rack_env['CONTENT_TYPE'] = request.content_type unless request.content_type.nil?
         rack_env['CONTENT_LENGTH']  = request.content_length unless request.content_length.nil?
 
-        request.headers.each do |name, value|
-          rack_env["HTTP_#{name.upcase.gsub(/-/,'_')}"] = value
-        end
+        rack_env.merge!(request.headers)
 
         response_status, response_headers, response_body = @app.call(rack_env)
 

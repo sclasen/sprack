@@ -41,7 +41,7 @@ object Main extends App {
 }
 
 class Conf(args: Seq[String]) extends ScallopConf(args) {
-  version("0.0.1")
+  version("0.0.6")
   val host = opt[String](default = Some("0.0.0.0"))
   val port = opt[Int](default = Some(8080))
   val rackfile = opt[String](default = Some("./config.ru"))
