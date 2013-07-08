@@ -9,7 +9,7 @@
 
 ```
 
-rbenv local jruby-1.7.3
+rbenv local jruby-1.7.4
 gem install bundler
 bundle install
 bundle exec sbt
@@ -33,7 +33,12 @@ bundle exec sbt assembly
 
 ```
 
-bundle exec java -jar path/to/sprack.jar --help
+Gemfile
+
+gem "sprack"
+
+
+bundle exec sprack --help
 
 0.0.0.1
   -a, --akkafile  <arg>
