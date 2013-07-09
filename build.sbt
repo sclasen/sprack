@@ -6,7 +6,7 @@ name := "sprack"
 
 scalaVersion := "2.10.1"
 
-version := "0.0.7"
+version := "0.0.8"
 
 resolvers ++= Seq(
   "spray repo" at "http://repo.spray.io/",
@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %%  "akka-actor" % "2.2.0-RC1",
   "com.typesafe.akka" %%  "akka-slf4j" % "2.2.0-RC1",
   "ch.qos.logback"% "logback-classic" % "1.0.12" % "runtime",
-  "org.jruby" % "jruby-complete" % "1.7.4" % "provided",
+  "org.jruby" % "jruby-complete" % "1.7.4",
   "org.rogach" %% "scallop" % "0.9.2",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
