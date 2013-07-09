@@ -17,6 +17,7 @@ import spray.http.HttpRequest
 import spray.http.HttpResponse
 import scala.annotation.tailrec
 import RackApp._
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap
 
 
 class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStream) {
@@ -113,7 +114,10 @@ object RackRequest {
 
   //previously we were doing (in ruby) header.name => HTTP_ + header.name.toUpper.gsub("-","_") translation
   //but that was the top sprack code present in cpu profiling.
-  val rackHeaderNameCache = new JHMap[String, String](1024).asScala
+  val rackHeaderNameCache = new ConcurrentLinkedHashMap.Builder[String,String]
+    .initialCapacity(1024)
+    .maximumWeightedCapacity(1024)
+    .build.asScala
 
   def apply(req: HttpRequest)(implicit ruby: Ruby): RackRequest = RackRequest(
     req.method.toString,
