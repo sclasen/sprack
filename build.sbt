@@ -6,7 +6,7 @@ name := "sprack"
 
 scalaVersion := "2.10.1"
 
-version := "0.0.6"
+version := "0.0.7"
 
 resolvers ++= Seq(
   "spray repo" at "http://repo.spray.io/",
