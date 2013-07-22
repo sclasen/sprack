@@ -24,6 +24,9 @@ object Main extends App {
     case Success(Ready) =>
       println("RackHandler Ready binding")
       IO(Http) ! Http.Bind(handler, interface = conf.host(), port = conf.port())
+      conf.healthport.foreach{
+        port =>   IO(Http) ! Http.Bind(handler, interface = conf.host(), port = port)
+      }
     case Failure(e) =>
       println("Failed to init RackHandler, exiting")
       e.printStackTrace()
@@ -44,6 +47,7 @@ class Conf(args: Seq[String]) extends ScallopConf(args) {
   version("0.0.8")
   val host = opt[String](default = Some("0.0.0.0"))
   val port = opt[Int](default = Some(8080))
+  val healthport = opt[Int](default = None)
   val rackfile = opt[String](default = Some("./config.ru"))
   val timeout = opt[Int](default = Some(30)).map(_ seconds)
   val akkafile = opt[String]()

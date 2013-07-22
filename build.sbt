@@ -4,9 +4,9 @@ import AssemblyKeys._
 
 name := "sprack"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
-version := "0.0.8"
+version := "0.0.9"
 
 resolvers ++= Seq(
   "spray repo" at "http://repo.spray.io/",
@@ -14,12 +14,12 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "io.spray" % "spray-caching" % "1.2-20130620",
-  "io.spray" % "spray-can" % "1.2-20130620",
-  "com.typesafe.akka" %%  "akka-actor" % "2.2.0-RC1",
-  "com.typesafe.akka" %%  "akka-slf4j" % "2.2.0-RC1",
+  "io.spray" % "spray-caching" % "1.2-20130719",
+  "io.spray" % "spray-can" % "1.2-20130719",
+  "com.typesafe.akka" %%  "akka-actor" % "2.2.0",
+  "com.typesafe.akka" %%  "akka-slf4j" % "2.2.0",
   "ch.qos.logback"% "logback-classic" % "1.0.12" % "runtime",
-  "org.jruby" % "jruby-complete" % "1.7.4",
+  "org.jruby" % "jruby-complete" % "1.7.4" % "provided",
   "org.rogach" %% "scallop" % "0.9.2",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )

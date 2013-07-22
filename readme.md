@@ -21,7 +21,7 @@ bundle exec sbt
 
 ```
 
-bundle exec sbt assembly
+bundle exec rake sprack:gem
 ...
 ...
 [info] Packaging /github.com/sclasen/sprack/target/scala-2.10/sprack.jar ...
@@ -40,10 +40,11 @@ gem "sprack"
 
 bundle exec sprack --help
 
-0.0.0.1
+0.0.9
   -a, --akkafile  <arg>
   -h, --host  <arg>        (default = 0.0.0.0)
   -p, --port  <arg>        (default = 8080)
+  -healthport <arg>        (default none)
   -r, --rackfile  <arg>    (default = ./config.ru)
   -t, --timeout  <arg>     (default = 30)
       --help              Show help message

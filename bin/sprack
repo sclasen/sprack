@@ -1,13 +1,9 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env jruby
 
-dir = File.expand_path("..", __FILE__)
+gemdir = File.expand_path("../..", __FILE__)
 
-javaopts = ENV['JAVA_OPTS'] || ""
+require "java"
 
-args = " -jar #{dir}/../target/scala-2.10/sprack.jar "
+require "#{gemdir}/target/scala-2.10/sprack.jar"
 
-command = "java " << javaopts << args
-
-ARGV.each{|a| command << " #{a} "  }
-
-Kernel.exec(command)
+Java::com.sclasen.sprack.Main.main(ARGV.to_java(:string))
