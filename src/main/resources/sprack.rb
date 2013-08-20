@@ -1,5 +1,4 @@
 require 'java'
-require 'bundler/setup'
 require 'rack'
 require 'rack/rewindable_input'
 require 'stringio'
