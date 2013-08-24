@@ -3,7 +3,7 @@ require 'rake'
 
 Gem::Specification.new do |spec|
   spec.name          = "sprack"
-  spec.version       = "0.0.11"
+  spec.version       = "0.0.12"
   spec.authors       = ["Scott Clasen"]
   spec.email         = ["scott@heroku.com"]
   spec.description   = %q{Spray based Rack Handler for JRuby Apps}
