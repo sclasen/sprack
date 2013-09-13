@@ -18,6 +18,7 @@ import spray.http.HttpResponse
 import scala.annotation.tailrec
 import RackApp._
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap
+import spray.http.HttpData.Empty
 
 
 class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStream) {
@@ -80,7 +81,7 @@ class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStrea
         bs =>
           bs.asInstanceOf[JList[Array[Byte]]].asScala.foldLeft(ByteString.newBuilder) {
             case (builder, bytes) => builder.putBytes(bytes)
-          }.result().toArray
+          }.result()
       }
       Right(RackResponse(status, headers, body).toSpray)
     }
@@ -135,7 +136,7 @@ object RackRequest {
 
   def contentLength(req: HttpRequest): String = req.header[`Content-Length`].map(_.length.toString).orNull
 
-  def byteStringBody(req: HttpRequest): ByteString = ByteString(req.entity.buffer)
+  def byteStringBody(req: HttpRequest): ByteString = req.entity.data.toByteString
 
   def headers(req: HttpRequest)(implicit ruby: Ruby): RubyHash = req.headers.foldLeft(new RubyHash(ruby)) {
     case (hash, `Content-Length`(_)) => hash
@@ -153,11 +154,11 @@ object RackRequest {
 
 }
 
-case class RackResponse(status: Int, parsedHeaders: List[HttpHeader], body: Option[Array[Byte]]) {
+case class RackResponse(status: Int, parsedHeaders: List[HttpHeader], body: Option[ByteString]) {
 
   def contentType: ContentType = header[`Content-Type`](parsedHeaders).map(_.contentType).getOrElse(`text/plain`)
 
-  def entity: HttpEntity = body.map(bytes => HttpEntity(contentType, bytes)).getOrElse(EmptyEntity)
+  def entity: HttpEntity = body.map(bytes => HttpEntity(contentType, bytes)).getOrElse(Empty)
 
   def toSpray: HttpResponse = {
     HttpResponse(StatusCodes.getForKey(status).get, entity, filterHeaders(parsedHeaders))

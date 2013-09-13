@@ -20,13 +20,16 @@ class LoggerSpec extends WordSpec with MustMatchers with SprackSpec{
         new String(out.toByteArray) must equal(logs)
       }
 
-      "log from ruby stdout" in {
+      "log from ruby stdout,stderr,rack" in {
         val out = new ByteArrayOutputStream()
+        val err = new ByteArrayOutputStream()
         val logger = ActorLogStream(system.actorOf(Props(classOf[Logger], new PrintStream(out))))
-        val err = ActorLogStream(system.actorOf(Props(classOf[Logger], System.err)))
-        val app = new RackApp("src/test/resources/log.ru", 5000, logger, err)
+        val errLog = ActorLogStream(system.actorOf(Props(classOf[Logger], new PrintStream(err))))
+        val app = new RackApp("src/test/resources/log.ru", 5000, logger, errLog)
         app.call(HttpRequest(GET, Uri("/")))
-        new String(out.toByteArray) must equal("I LOGGED SOMETHING\n")
+        new String(out.toByteArray) must startWith("I LOGGED SOMETHING\n")
+        new String(err.toByteArray) must startWith("I errLOGGED SOMETHING\n")
+        new String(out.toByteArray) must endWith("I rackLOGGED SOMETHING\n")
       }
     }
 }
