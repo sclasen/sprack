@@ -15,8 +15,8 @@ trait SprackSpec extends BeforeAndAfterAll{
   }
 
   def actorLogStreams = {
-    (ActorLogStream(system.actorOf(Props(classOf[Logger],System.out))),
-    ActorLogStream(system.actorOf(Props(classOf[Logger],System.err))))
+    (ActorLogger(system.actorOf(Props(classOf[Logger],System.out))),
+    ActorLogger(system.actorOf(Props(classOf[Logger],System.err))))
   }
 
   override protected def afterAll() {

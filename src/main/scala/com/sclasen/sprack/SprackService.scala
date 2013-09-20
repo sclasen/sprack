@@ -22,7 +22,7 @@ class SprackService(config: String, port: Int) extends Actor with SprayActorLogg
   val rackApp = new RackApp(config, port, out, err)
 
   def actorLogStream(stream: OutputStream, name: String) =
-    ActorLogStream(context.actorOf(Props(classOf[Logger], stream).withDispatcher("sprack.logger-dispatcher"), name))
+    ActorLogger(context.actorOf(Props(classOf[Logger], stream).withDispatcher("sprack.logger-dispatcher"), name))
 
   def receive = {
     case _: Http.Connected => sender ! Http.Register(self)
@@ -39,7 +39,8 @@ class SprackService(config: String, port: Int) extends Actor with SprayActorLogg
       }.onFailure {
         case e: Exception =>
           val msg = e.toString + e.getStackTraceString
-          err.write(ByteBuffer.wrap(msg.getBytes))
+          err.send(msg.getBytes)
+          out.send(msg.getBytes)
           client ! HttpResponse(StatusCodes.InternalServerError, HttpEntity(msg))
       }
     }

@@ -21,7 +21,7 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap
 import spray.http.HttpData.Empty
 
 
-class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStream) {
+class RackApp(config: String, port: Int, out: ActorLogger, err: ActorLogger) {
 
   val configFile = new File(config)
   implicit val runtime = JavaEmbedUtils.initialize(List(configFile.getParentFile.getCanonicalPath).asJava, runtimeConfig)
@@ -48,8 +48,8 @@ class RackApp(config: String, port: Int, out: ActorLogStream, err: ActorLogStrea
       Array[IRubyObject](
         ruby(configFile.getCanonicalPath),
         ruby(port),
-        ruby(RubyIO.newIO(runtime, out)),
-        ruby(RubyIO.newIO(runtime, err))
+        ruby(out),
+        ruby(err)
       ))
   }
 

@@ -19,7 +19,7 @@ run lambda { |env|
   req.body.rewind
 
   [200, {"Content-Type" => "text/plain"}, [both, req.body.gets]]
- rescue
-   [500, {}, "no"]
+ rescue StandardError => e
+   [500, {}, ["no"]]
  end
 }

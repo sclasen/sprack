@@ -21,7 +21,7 @@ module Sprack
         @out = out
         @err = err
         @errors = err
-        @logger = ::Logger.new(out)
+        @logger = @out
         $stdout = @out
         $stderr = @err
       end
